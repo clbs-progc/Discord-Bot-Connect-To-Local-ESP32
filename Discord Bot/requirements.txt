@@ -1,0 +1,3 @@
+#run pip install .\requirements.txt to install the dependencies
+discord.py
+python-dotenv 
