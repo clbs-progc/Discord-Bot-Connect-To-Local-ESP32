@@ -73,8 +73,8 @@ async def check_connection_error(ctx, connect, user): ##SENDS MESSAGE TO BOT'S O
 
 
 @bot.command()
-async def missu(ctx):
-	await ctx.send(f"miss u too {ctx.author.mention}!")
+async def ping(ctx):
+	await ctx.send(f"PONG! {round(bot.latency * 1000)}ms")
 
 @bot.command()
 async def attention(ctx):
