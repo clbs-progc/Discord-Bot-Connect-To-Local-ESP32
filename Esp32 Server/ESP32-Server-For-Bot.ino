@@ -48,7 +48,8 @@ void handleOff() {
 
 void setup() {
 
-  Serial.begin(115200);  
+  Serial.begin(115200); 
+  setCpuFrequencyMhz(80); 
   pinMode(2, OUTPUT);
   delay(1000);
   digitalWrite(2, LOW);
@@ -86,17 +87,13 @@ void loop() {
   if(light == true)
   {
     digitalWrite(2, HIGH);
-    esp_sleep_enable_timer_wakeup(100 * uS_TO_mS_FACTOR);
-    esp_deep_sleep_start();
+    delay(100);
     digitalWrite(2, LOW); 
-    esp_sleep_enable_timer_wakeup(100 * uS_TO_mS_FACTOR);
-    esp_deep_sleep_start();
+    delay(100);
   }
   else
   {
     digitalWrite(2, LOW);
-    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_mS_FACTOR);
-    esp_deep_sleep_start();
   }
 
 }
