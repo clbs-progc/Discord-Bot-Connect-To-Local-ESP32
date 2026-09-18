@@ -2,6 +2,10 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+
+#define uS_TO_mS_FACTOR 1000ULL  // Conversion factor for milliseconds to microseconds
+#define TIME_TO_SLEEP  200      // Time the ESP32 will sleep (in milliseconds)
+
 const char *ssid = " "; //REPLACE WITH LOCAL WIFI NAME
 const char *password = " "; //REPLACE WITH LOCAL WIFI PASSWORD
 
@@ -82,13 +86,17 @@ void loop() {
   if(light == true)
   {
     digitalWrite(2, HIGH);
-    delay(100);
+    esp_sleep_enable_timer_wakeup(100 * uS_TO_mS_FACTOR);
+    esp_deep_sleep_start();
     digitalWrite(2, LOW); 
-    delay(100);
+    esp_sleep_enable_timer_wakeup(100 * uS_TO_mS_FACTOR);
+    esp_deep_sleep_start();
   }
   else
   {
     digitalWrite(2, LOW);
+    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_mS_FACTOR);
+    esp_deep_sleep_start();
   }
 
 }
