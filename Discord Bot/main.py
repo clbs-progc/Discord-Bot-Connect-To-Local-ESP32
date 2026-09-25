@@ -11,6 +11,10 @@ import requests
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
+SOURCE_PICS_CHANNEL_ID = #channel id
+SOURCE_GIFS_CHANNEL_ID = #channel id
+DEST_PICS_CHANNEL_ID = #channel id
+DEST_GIFS_CHANNEL_ID = #channel id
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 intents = discord.Intents.default()
 intents.message_content = True
@@ -69,6 +73,49 @@ async def on_message(message):
 	#    await message.delete()
 	#    await message.channel.send(f"{message.author.mention} - You mentioned banned word!")
 
+	if message.channel.id == SOURCE_PICS_CHANNEL_ID:
+		destination_channel = bot.get_channel(DEST_PICS_CHANNEL_ID)
+		if destination_channel:
+			try:
+                # Prepare attachments if any exist in the original message
+				files = []
+				for attachment in message.attachments:
+					files.append(await attachment.to_file())
+
+                	# Construct a clean text format showing who sent the original message
+                	#content_to_send = f"**{message.author.name}**: {message.content}" if message.content else f"**{message.author.name}** sent a file/embed:"
+					
+
+                # Send content and files to the destination channel in the other server
+				await destination_channel.send(files=files)
+				
+			except Exception as e:
+				print(f"Failed to copy message: {e}")
+		
+	if message.channel.id == SOURCE_GIFS_CHANNEL_ID:
+		destination_channel = bot.get_channel(DEST_GIFS_CHANNEL_ID)
+		content_to_send = ""
+		if "http://" not in message.content and "https://" not in message.content:
+			return
+
+		if destination_channel:
+			try:
+                # Prepare attachments if any exist in the original message
+				files = []
+				for attachment in message.attachments:
+					files.append(await attachment.to_file())
+
+                	# Construct a clean text format showing who sent the original message
+				if message.content:
+					content_to_send = f"{message.content}"
+					
+
+                # Send content and files to the destination channel in the other server
+				await destination_channel.send(content=content_to_send, files=files)
+				
+			except Exception as e:
+				print(f"Failed to copy message: {e}")
+
 	await bot.process_commands(message)
 
 async def check_connection_error(ctx, connect, user): ##SENDS MESSAGE TO BOT'S OWNER ADMIN ID IN CASE OF ERROR
@@ -109,13 +156,59 @@ async def off(ctx):
 
 @bot.command()
 async def gif(ctx):
-	connect = connecttoesp("http://192.168.0.184/rng")
-	if connect == 1:
-		list_length = len(gif_list)
-		#print(list_length)
-		number = random.randint(0, list_length - 1)
-		await ctx.send(gif_list[number])
-	else:
-		await ctx.send(random.choice(gif_list))
+    # Get the specific channel where images are stored
+    source_channel = bot.get_channel(DEST_GIFS_CHANNEL_ID)
+    
+    if not source_channel:
+        await ctx.send("Could not find the source image channel. Check the ID!")
+        return
+
+    gif_messages = []
+
+    # Fetch history from the SPECIFIC source channel
+    async for message in source_channel.history(limit=200):
+        if any(keyword in message.content for keyword in ["tenor.com", "giphy.com", ".gif"]):
+            gif_messages.append(message.content)
+            continue
+
+        if message.attachments:
+            for attachment in message.attachments:
+                if attachment.content_type == "image/gif":
+                    gif_messages.append(attachment.url)
+
+    if not gif_messages:
+        await ctx.send(f"No gifs found in the source channel!")
+        return
+	
+    gif_messages.extend(gif_list)
+    chosen_gif_url = random.choice(gif_messages)
+
+    await ctx.send(f"{chosen_gif_url}")
+
+@bot.command()
+async def pic(ctx):
+    # Get the specific channel where images are stored
+    source_channel = bot.get_channel(DEST_PICS_CHANNEL_ID)
+    
+    if not source_channel:
+        await ctx.send("Could not find the source image channel. Check the ID!")
+        return
+
+    image_messages = []
+
+    # Fetch history from the SPECIFIC source channel
+    async for message in source_channel.history(limit=200):
+        if message.attachments:
+            for attachment in message.attachments:
+                if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp']):
+                    image_messages.append(attachment.url)
+
+    if not image_messages:
+        await ctx.send(f"No images found in the source channel!")
+        return
+
+    chosen_image_url = random.choice(image_messages)
+
+    await ctx.send(f"Here is a random pic :)\n{chosen_image_url}")
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
