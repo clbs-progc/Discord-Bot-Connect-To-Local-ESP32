@@ -47,6 +47,12 @@ void handleOff() {
   server.send(200, "text/plain", "OFF_OK");
 }
 
+void handleRNG(){
+  int randomnumber = random(0,100);
+  Serial.println(randomnumber);
+  server.send(200, "text/plain", String(randomnumber));
+}
+
 void setup() {
 
   Serial.begin(115200); 
@@ -79,6 +85,7 @@ void setup() {
   server.on("/", HTTP_GET, handleRoot);
   server.on("/on", HTTP_GET, handleOn);
   server.on("/off", HTTP_GET, handleOff);
+  server.on("/rng", HTTP_GET, handleRNG);
 
   esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
   server.begin();
