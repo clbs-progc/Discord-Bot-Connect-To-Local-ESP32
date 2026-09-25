@@ -1,5 +1,6 @@
 from urllib import response
 
+import random
 import discord
 from discord.ext import commands
 import logging 
@@ -17,11 +18,19 @@ intents.members = True
 admin_id = # Replace with the actual admin ID
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+gif_list = [
+    "https://tenor.com/",
+    "https://tenor.com/",
+    "https://tenor.com/"
+]
+
 def connecttoesp(ipserver):
 	try:
 		response = requests.get(ipserver, timeout=(3,5) )
 		if response.status_code == 200:
 			print(f"Connection successful! Status code: {response.status_code}")
+			#print(response.text)
+			random.seed(response.text)
 			response.close()
 			return 1
 
@@ -97,5 +106,16 @@ async def off(ctx):
 
 	else:
 		await check_connection_error(ctx, connect, user) #if not 1, its an error.
+
+@bot.command()
+async def gif(ctx):
+	connect = connecttoesp("http://192.168.0.184/rng")
+	if connect == 1:
+		list_length = len(gif_list)
+		#print(list_length)
+		number = random.randint(0, list_length - 1)
+		await ctx.send(gif_list[number])
+	else:
+		await ctx.send(random.choice(gif_list))
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
